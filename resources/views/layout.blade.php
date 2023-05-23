@@ -1,4 +1,4 @@
-@if(session()->get('login') == null)
+@if(session()->get('username') == null)
 <script>
     window.location.href = "/";
 </script>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\UsersModel;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 
 class LoginController extends Controller
@@ -14,32 +15,22 @@ class LoginController extends Controller
     }
 
     public function proseslogin(Request $request) {
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required|min:6',
-        ]);
-
-        $user = UsersModel::where([
-            'username'=> $request->username
-        ])->get();
-
-        if (count($user) > 0) {
-            if(Hash::check($request->password,$user[0]->password)){
-                $request->session()->put('login',1);
-                $request->session()->put('username',$user[0]->username);
-                $request->session()->put('level',$user[0]->level);
-                return Redirect('/dashboard');
-            }else{
-                return redirect('/');
-            }
+        if(Auth::Attempt([
+            'username' => $request->username,
+            'password' => $request->password,
+        ])) {
+            $request->session()->put('username' , Auth::user()->username);
+            $request->session()->regenerate();
+            return redirect('/dashboard');
         }else{
             return redirect('/');
         }
     }
-
+    
     public function logout(Request $request){
-        $request->session()->forget(['login','username','level']);
-        $request->session()->flush();
+        Auth::logout();
+        $request->session()->forget('username');
+        $request->session()->invalidate();
         return redirect('/');
     }
 }
